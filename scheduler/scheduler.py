@@ -71,7 +71,7 @@ class Scheduler:
 
     def get_time_of_slot(self, slot:int) -> str:
         hour = slot//4 + self.beginning
-        min = 15*slot%4
+        min = slot%4 * 15
         f"{min:02}"
         return '{}:{}'.format(f"{hour:02}", f"{min:02}")
 
@@ -97,10 +97,11 @@ class Scheduler:
             if course.get_count() == 1:
                 start_time, duration = self.get_slot_of_time(course.start_time), int(course.duration.total_seconds()/60/15)
                 for hour in range(start_time, start_time + duration):
-                    if self.week[Scheduler.weekdays_to_int(course.day_of_week)][hour] == 0:
+                    existing_slot = self.week[Scheduler.weekdays_to_int(course.day_of_week)][hour]
+                    if existing_slot == 0:
                         slots.append((course,hour))
                     else:
-                        break
+                        print(f'{course.name} - In {course.day_of_week.capitalize()} at {self.get_time_of_slot(hour)} there is already a course - {existing_slot}.')
 
                 if len(slots) == course.duration.total_seconds()/60/15:
                     self.set_slot([slots[0][1],slots[-1][1]], Scheduler.weekdays_to_int(course.day_of_week), slots[0][0])
