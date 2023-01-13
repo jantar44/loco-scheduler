@@ -90,22 +90,25 @@ class Scheduler:
         for time in range(slots[0], slots[1]):
             self.week[day][time] = course
 
+    def insert_course(self, course):
+        slots = []
+        start_time, duration = self.get_slot_of_time(course.start_time), int(course.duration.total_seconds()/60/15)
+        for hour in range(start_time, start_time + duration):
+            existing_slot = self.week[Scheduler.weekdays_to_int(course.day_of_week)][hour]
+            if existing_slot == 0:
+                slots.append((course,hour))
+            else:
+                print(f'{course.name} - In {course.day_of_week.capitalize()} at {self.get_time_of_slot(hour)} there is already a course - {existing_slot}.')
+
+        if len(slots) == course.duration.total_seconds()/60/15:
+            self.set_slot([slots[0][1],slots[-1][1]], Scheduler.weekdays_to_int(course.day_of_week), slots[0][0])
+            course.assigned = True
+
     def unmovable_to_schedule(self):
         self.sort_courses_by_number()
         for course in self.courses:
-            slots = []
             if course.get_count() == 1:
-                start_time, duration = self.get_slot_of_time(course.start_time), int(course.duration.total_seconds()/60/15)
-                for hour in range(start_time, start_time + duration):
-                    existing_slot = self.week[Scheduler.weekdays_to_int(course.day_of_week)][hour]
-                    if existing_slot == 0:
-                        slots.append((course,hour))
-                    else:
-                        print(f'{course.name} - In {course.day_of_week.capitalize()} at {self.get_time_of_slot(hour)} there is already a course - {existing_slot}.')
-
-                if len(slots) == course.duration.total_seconds()/60/15:
-                    self.set_slot([slots[0][1],slots[-1][1]], Scheduler.weekdays_to_int(course.day_of_week), slots[0][0])
-                    course.assigned = True
+                self.insert_course(course)
 
     def get_value(self):
         for day in self.week:
